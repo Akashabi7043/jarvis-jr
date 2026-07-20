@@ -2,6 +2,7 @@ from datetime import datetime
 
 from core.speaker import Speaker
 from core.listener import Listener
+from core.brain import Brain
 
 
 def startup():
@@ -23,6 +24,7 @@ def main():
 
     speaker = Speaker()
     listener = Listener()
+    brain = Brain(speaker)
 
     speaker.speak("Hello Akash. I am Junior Jarvis.")
 
@@ -33,15 +35,10 @@ def main():
         if command == "":
             continue
 
-        if "exit" in command or "goodbye" in command:
+        keep_running = brain.process(command)
 
-            speaker.speak("Goodbye. Have a nice day.")
-
+        if not keep_running:
             break
-
-        else:
-
-            speaker.speak(f"You said {command}")
 
 
 if __name__ == "__main__":
