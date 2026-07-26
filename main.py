@@ -29,17 +29,15 @@ def main():
     speaker.speak("Hello Akash. I am Junior Jarvis.")
 
     while True:
-
         command = listener.listen()
 
         if command == "":
             continue
 
-        keep_running = brain.process(command)
+        running = brain.process(command)
 
-        if not keep_running:
+        if not running:
             break
-
 
 if __name__ == "__main__":
     main()
