@@ -5,6 +5,29 @@ from commands.browser import BrowserCommands
 from commands.system import SystemCommands
 from commands.apps import AppCommands
 
+import json
+
+
+class Memory:
+    def __init__(self, storage_path):
+        self.storage_path = storage_path
+        try:
+            with open(self.storage_path, "r", encoding="utf-8") as f:
+                self.store = json.load(f)
+        except Exception:
+            self.store = {}
+
+    def remember(self, key, value):
+        self.store[key] = value
+        try:
+            with open(self.storage_path, "w", encoding="utf-8") as f:
+                json.dump(self.store, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    def recall(self, key):
+        return self.store.get(key)
+
 
 class Brain:
 
@@ -31,6 +54,9 @@ class Brain:
         self.system = SystemCommands(speaker)
         self.apps = AppCommands(speaker)
         self.browser = BrowserCommands(speaker)
+        # simple persistent memory
+        storage = os.path.join(home, "jarvis_memory.json")
+        self.memory = Memory(storage)
 
     def process(self, command):
 
@@ -162,6 +188,73 @@ class Brain:
                 return True
 
             self.files.create_file(file_name)
+            return True
+
+        # Delete File
+        if command.startswith("delete file"):
+            file_name = command.replace("delete file", "").strip()
+
+            if file_name == "":
+                self.speaker.speak("Please tell me the file name.")
+                return True
+
+            self.files.delete_file(file_name)
+            return True
+        # Rename File
+        if command.startswith("rename file"):
+            text = command.replace("rename file", "").strip()
+
+            if " to " not in text:
+                self.speaker.speak("Please say the old and new file names.")
+                return True
+
+            old_name, new_name = text.split(" to ", 1)
+            self.files.rename_file(old_name.strip(), new_name.strip())
+            return True
+
+        # List Files
+        if command.startswith("list files in"):
+            folder = command.replace("list files in", "").strip()
+            self.files.list_files(folder)
+            return True
+        # Remember
+        if command.startswith("remember"):
+            text = command.replace("remember", "").strip()
+
+            words = text.split()
+
+            if len(words) < 2:
+                self.speaker.speak("Please tell me what to remember.")
+                return True
+
+            if " is " in text:
+                key, value = text.split(" is ", 1)
+            else:
+                key = " ".join(words[:-1])
+                value = words[-1]
+
+            print("KEY :", key)
+            print("VALUE :", value)
+
+            self.memory.remember(key.strip(), value.strip())
+
+            self.speaker.speak("I will remember that.")
+
+            return True
+        
+       
+        # Recall
+        if command.startswith("what is"):
+
+            key = command.replace("what is", "").strip()
+
+            value = self.memory.recall(key)
+
+            if value:
+                self.speaker.speak(f"{key} is {value}")
+            else:
+                self.speaker.speak("I don't remember that yet.")
+
             return True
 
         # Exit

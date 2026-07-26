@@ -3,6 +3,32 @@ import subprocess
 
 
 class FileCommands:
+    def list_files(self, folder):
+        folders = {
+            "desktop": self.desktop,
+            "documents": self.documents,
+            "downloads": self.downloads,
+            "pictures": self.pictures,
+            "music": self.music,
+            "videos": self.videos,
+        }
+
+        path = folders.get(folder.lower())
+
+        if not path or not os.path.exists(path):
+            self.speaker.speak("Folder not found.")
+            return
+
+        files = os.listdir(path)
+
+        if not files:
+            self.speaker.speak(f"The {folder} folder is empty.")
+            return
+
+        self.speaker.speak(f"There are {len(files)} items in {folder}.")
+
+        for file in files:
+            print(file)
 
     def create_file(self, file_name):
         desktop = self.desktop
@@ -17,6 +43,38 @@ class FileCommands:
 
         except Exception as e:
             self.speaker.speak("Unable to create the file.")
+            print(e)
+
+    def delete_file(self, file_name):
+        desktop = self.desktop
+        file_path = os.path.join(desktop, file_name)
+
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                self.speaker.speak(f"File {file_name} deleted successfully.")
+            else:
+                self.speaker.speak("File not found.")
+
+        except Exception as e:
+            self.speaker.speak("Unable to delete the file.")
+            print(e)
+
+    def rename_file(self, old_name, new_name):
+        desktop = self.desktop
+
+        old_path = os.path.join(desktop, old_name)
+        new_path = os.path.join(desktop, new_name)
+
+        try:
+            if os.path.exists(old_path):
+                os.rename(old_path, new_path)
+                self.speaker.speak(f"Renamed {old_name} to {new_name}.")
+            else:
+                self.speaker.speak("File not found.")
+
+        except Exception as e:
+            self.speaker.speak("Unable to rename the file.")
             print(e)
 
     def create_folder(self, folder_name):
